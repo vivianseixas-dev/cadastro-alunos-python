@@ -68,9 +68,8 @@ registration_system = RegistrationSystem()
 #update_student = registration_system.update_student(student)
 
 #Deletar Aluno
-registration_system.delete_student(1)
-        
-all_students = registration_system.view_all_students()   
+#registration_system.delete_student()
+         
 
 
 
