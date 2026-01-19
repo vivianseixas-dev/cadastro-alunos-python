@@ -1,8 +1,8 @@
-#importando Tkinter ---------------------
+#Importando Tkinter ---------------------
 
 import tkinter as tk
 
-#importando dependencias do Tkinter ---------------------
+#Importando dependencias do Tkinter ---------------------
 
 from tkinter.ttk import *
 from tkinter import *
@@ -10,14 +10,17 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog as fd
 
-#importando pillow ---------------------
+#Importando pillow ---------------------
 
 from PIL import Image, ImageTk
 
-#importando tk calendar ---------------------
+#Importando tk calendar ---------------------
 
 from tkcalendar import Calendar, DateEntry
 from datetime import date
+
+#Importando main ---------------
+from main import *
 
 #Cores ---------------------
 
@@ -50,6 +53,11 @@ janela.grid_rowconfigure(3, weight=1)
 style = Style(janela)
 style.theme_use("clam")
 
+#details ---------------------
+
+frame_details = Frame(janela, width=800, height=100, bg=co1, relief=SOLID)
+frame_details.grid(row=1, column=1, pady=1, padx=10, sticky=NSEW)
+
 #Header ---------------------
 
 frame_logo = Frame(janela, width=850, height=52, bg=co6)
@@ -76,15 +84,20 @@ label_logo = tk.Label(
 )
 label_logo.place(x=5, y=0)
 
+#Abrir imagem
+
+imagem = Image.open('logo.png')
+imagem = imagem.resize((130,130))
+imagem = ImageTk.PhotoImage(imagem)
+label_imagem = tk.Label(frame_details, image=imagem, bg=co1, fg=co4)
+label_imagem.place(x=390, y=10)
+
 #left_menu ---------------------
 
 frame_left_menu = Frame(janela, width=100, height=200, bg=co1, relief=RAISED)
 frame_left_menu.grid(row=1, column=0, pady=1, padx=0, sticky=NSEW)
 
-#details ---------------------
 
-frame_details = Frame(janela, width=800, height=100, bg=co1, relief=SOLID)
-frame_details.grid(row=1, column=1, pady=1, padx=10, sticky=NSEW)
 
 #details_name ---------------------
 
@@ -119,8 +132,8 @@ c_gender.place(x=130, y=160)
 
 label_birth = Label(frame_details, text="Data de nascimento *", anchor=NW, font=('Ivy 10'), bg=co1, fg=co4)
 label_birth.place(x=220, y=10)
-birth = DateEntry(frame_details, width=20, justify='center', background='darkblue', foreground='white', borderwidth=2, year=2026)
-birth.place(x=224, y=40)
+entrada_birth = DateEntry(frame_details, width=20, justify='center', background='darkblue', foreground='white', borderwidth=2, year=2026)
+entrada_birth.place(x=224, y=40)
 
 #details_address ---------------------
 
@@ -139,7 +152,169 @@ c_course = ttk.Combobox(frame_details, width=20, font=('Ivy 8 bold'), justify='c
 c_course['values'] = (courses)
 c_course.place(x=224, y=160)
 
-#função para escolher imagem ---------------------
+#----------------------- Funções para CRUD -----------------------
+
+#Função adicionar
+def add():
+    global imagem, imagem_string, l_imagem
+
+    #obtendo os valores
+    name = entrada_name.get()
+    email = entrada_email.get()
+    phone = entrada_phone.get()
+    gender = c_gender.get()
+    birth = entrada_birth.get()
+    address = entrada_address.get()
+    course = c_course.get()
+    img = imagem_string
+
+    list = [name, email, phone, gender, birth, address, course, img]
+
+    #verificação de valores da lista
+
+    for i in list:
+        if i=='':
+            messagebox.showerror('Erro', 'Preencha todos os campos')
+            return
+    
+    #Registrar valores
+    registration_system.register_student(list)
+
+    #Limpar campos de entrada
+    entrada_name.delete(0, END)
+    entrada_email.delete(0, END)
+    entrada_phone.delete(0, END)
+    c_gender.delete(0, END)
+    entrada_birth.delete(0, END)
+    entrada_address.delete(0, END)
+    c_course.delete(0, END)
+
+    #Mostrar valores na tabela
+    mostrar_alunos()
+
+#Função procurar
+def procurar():
+    global imagem, imagem_string, l_imagem
+
+    #Obter Id do Aluno
+    id_aluno = int(entrada_procuraraluno.get())
+
+    #Procurar aluno
+    dados = registration_system.search_students(id_aluno)
+
+    #Limpar campos de entrada
+    entrada_name.delete(0, END)
+    entrada_email.delete(0, END)
+    entrada_phone.delete(0, END)
+    c_gender.delete(0, END)
+    entrada_birth.delete(0, END)
+    entrada_address.delete(0, END)
+    c_course.delete(0, END)
+
+    #Inserir campos de entrada
+    entrada_name.insert(END, dados[1])
+    entrada_email.insert(END, dados[2])
+    entrada_phone.insert(END, dados[3])
+    c_gender.insert(END, dados[4])
+    entrada_birth.insert(END, dados[5])
+    entrada_address.insert(END, dados[6])
+    c_course.insert(END, dados[7])
+
+
+    imagem = dados[8]
+    imagem_string = imagem
+
+    imagem = Image.open(imagem)
+    imagem = imagem.resize((130,130))
+    imagem = ImageTk.PhotoImage(imagem)
+    
+    label_imagem = tk.Label(frame_details, image=imagem, bg=co1, fg=co4)
+    label_imagem.place(x=390, y=10)
+
+#Função atualizar
+def atualizar():
+    global imagem, imagem_string, l_imagem
+
+    #Obter Id do Aluno
+    id_aluno = int(entrada_procuraraluno.get())
+
+    #obtendo os valores
+    name = entrada_name.get()
+    email = entrada_email.get()
+    phone = entrada_phone.get()
+    gender = c_gender.get()
+    birth = entrada_birth.get()
+    address = entrada_address.get()
+    course = c_course.get()
+    img = imagem_string
+
+    list = [name, email, phone, gender, birth, address, course, img, id_aluno]
+
+    #verificação de valores da lista
+
+    for i in list:
+        if i=='':
+            messagebox.showerror('Erro', 'Preencha todos os campos')
+            return
+    
+    #Registrar valores
+    registration_system.update_student(list)
+
+    #Limpar campos de entrada
+    entrada_name.delete(0, END)
+    entrada_email.delete(0, END)
+    entrada_phone.delete(0, END)
+    c_gender.delete(0, END)
+    entrada_birth.delete(0, END)
+    entrada_address.delete(0, END)
+    c_course.delete(0, END)
+
+    #Limpar a imagem
+    
+    imagem = Image.open('logo.png')
+    imagem = imagem.resize((130,130))
+    imagem = ImageTk.PhotoImage(imagem)
+    
+    label_imagem = tk.Label(frame_details, image=imagem, bg=co1, fg=co4)
+    label_imagem.place(x=390, y=10)
+
+    #Mostrar valores na tabela
+    mostrar_alunos()
+
+#Função deletar
+def deletar():
+    global imagem, imagem_string, l_imagem
+
+    #Obter Id do Aluno
+    id_aluno = int(entrada_procuraraluno.get())
+    
+    #Deletando o aluno
+    registration_system.delete_student(id_aluno)
+    
+    #Limpar campos de entrada
+    entrada_name.delete(0, END)
+    entrada_email.delete(0, END)
+    entrada_phone.delete(0, END)
+    c_gender.delete(0, END)
+    entrada_birth.delete(0, END)
+    entrada_address.delete(0, END)
+    c_course.delete(0, END)
+
+    entrada_procuraraluno.delete(0,END)
+
+    #Limpar a imagem
+    
+    imagem = Image.open('logo.png')
+    imagem = imagem.resize((130,130))
+    imagem = ImageTk.PhotoImage(imagem)
+    
+    label_imagem = tk.Label(frame_details, image=imagem, bg=co1, fg=co4)
+    label_imagem.place(x=390, y=10)
+
+    #Mostrar valores na tabela
+    mostrar_alunos()
+
+#Função para escolher imagem ---------------------
 
 def escolher_imagem():
     global imagem, imagem_string, l_imagem
@@ -147,7 +322,7 @@ def escolher_imagem():
     imagem = fd.askopenfilename()
     imagem_string = imagem
 
-    imagem = Image.open(imagem)
+    imagem = Image.open('imagem')
     imagem = imagem.resize((130,130))
     imagem = ImageTk.PhotoImage(imagem)
     label_imagem = tk.Label(frame_details, image=imagem, bg=co1, fg=co4)
@@ -169,10 +344,10 @@ frame_table.grid(row=3, column=0, pady=5, padx=10, sticky="nsew", columnspan=2)
 
 def mostrar_alunos():
 
-    list_header = ['id', 'Nome', 'Email', 'Telefone', 'Sexo', 'Endereço', 'Curso']
+    list_header = ['Id', 'Nome', 'Email', 'Telefone', 'Sexo', 'Data', 'Endereço', 'Curso']
 
     #ver todos os estudantes
-    df_list = []
+    df_list = registration_system.view_all_students()
 
     tree_aluno = ttk.Treeview(frame_table, selectmode="extended", columns=list_header, show="headings")
     
@@ -213,27 +388,27 @@ label_name.grid(row=0, column=0, pady=10, padx=0, sticky=NSEW)
 entrada_procuraraluno = Entry(frame_procuraraluno, width=5, justify='center', relief='solid', font=('Ivy 10'))
 entrada_procuraraluno.grid(row=1, column=0, pady=10, padx=0, sticky=NSEW)
 
-botao_alterar = Button(frame_procuraraluno, command=escolher_imagem, text='Procurar', width=9, anchor=CENTER, overrelief=RIDGE, font='Ivy 7 bold', bg=co1, fg=co0)
-botao_alterar.grid(row=1, column=1, pady=10, padx=0, sticky=NSEW)
+botao_procurar = Button(frame_procuraraluno, command=procurar, text='Procurar', width=9, anchor=CENTER, overrelief=RIDGE, font='Ivy 7 bold', bg=co1, fg=co0)
+botao_procurar.grid(row=1, column=1, pady=10, padx=0, sticky=NSEW)
 
 #Botões menu esquerdo -------------------------
 
 app_img_adicionar = Image.open('add.png')
 app_img_adicionar = app_img_adicionar.resize((25,25))
 app_img_adicionar = ImageTk.PhotoImage(app_img_adicionar)
-botao_app_img_adicionar = Button(frame_left_menu, image=app_img_adicionar, relief=GROOVE, text=' Adicionar', width=100, compound=LEFT, overrelief=RIDGE, font='Ivy 11', bg=co1, fg=co0)
+botao_app_img_adicionar = Button(frame_left_menu, command=add, image=app_img_adicionar, relief=GROOVE, text=' Adicionar', width=100, compound=LEFT, overrelief=RIDGE, font='Ivy 11', bg=co1, fg=co0)
 botao_app_img_adicionar.grid(row=1, column=0, pady=5, padx=10, sticky=NSEW)
 
 app_img_atualizar = Image.open('update.png')
 app_img_atualizar = app_img_atualizar.resize((22,22))
 app_img_atualizar = ImageTk.PhotoImage(app_img_atualizar)
-botao_app_img_atualizar = Button(frame_left_menu, image=app_img_atualizar, relief=GROOVE, text=' Atualizar', width=100, compound=LEFT, overrelief=RIDGE, font='Ivy 11', bg=co1, fg=co0)
+botao_app_img_atualizar = Button(frame_left_menu, command=atualizar, image=app_img_atualizar, relief=GROOVE, text=' Atualizar', width=100, compound=LEFT, overrelief=RIDGE, font='Ivy 11', bg=co1, fg=co0)
 botao_app_img_atualizar.grid(row=2, column=0, pady=5, padx=10, sticky=NSEW)
 
 app_img_deletar = Image.open('delete.png')
 app_img_deletar = app_img_deletar.resize((22,22))
 app_img_deletar = ImageTk.PhotoImage(app_img_deletar)
-botao_app_img_deletar = Button(frame_left_menu, image=app_img_deletar, relief=GROOVE, text=' Deletar', width=100, compound=LEFT, overrelief=RIDGE, font='Ivy 11', bg=co1, fg=co0)
+botao_app_img_deletar = Button(frame_left_menu, command=deletar, image=app_img_deletar, relief=GROOVE, text=' Deletar', width=100, compound=LEFT, overrelief=RIDGE, font='Ivy 11', bg=co1, fg=co0)
 botao_app_img_deletar.grid(row=3, column=0, pady=5, padx=10, sticky=NSEW)
 
 #Separador Vertical ----------------
